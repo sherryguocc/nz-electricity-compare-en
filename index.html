@@ -80,6 +80,7 @@
     .field input[type=number]:focus{outline:none;border-color:var(--accent)}
     .unit{font-size:12px;color:var(--muted)}
     .tip{margin-top:12px;padding:9px 12px;background:var(--accent-bg);border-radius:6px;font-size:12px;color:var(--accent)}
+    .peak-warn{margin:10px 0 4px;padding:9px 13px;background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;font-size:12px;color:#92400e;line-height:1.5}
     .slots-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
     .sc{display:flex;flex-direction:column;gap:4px}
     .sl{font-size:11px;color:var(--muted);text-align:center}
@@ -161,6 +162,7 @@
   <div class="card">
     <div class="sect-title">Cost Comparison <span class="pill pill-g">Sorted by monthly cost · 30 days</span></div>
     <div class="sum-bar" id="sumBar"><span style="color:var(--light)">Enter plan rates and usage to see comparisons…</span></div>
+    <div id="peakWarn"></div>
     <table>
       <thead>
         <tr>
@@ -229,6 +231,40 @@ const PRESETS = [
     }
   },
   {
+    id: 'preset-mercury-standard-flex',
+    name: '20260802-Mercury-standard-Flex',
+    data: {
+      name: 'Mercury', peakDays: 'dual',
+      peakStart: 7, peakEnd: 11, peak2Start: 17, peak2End: 21.5,
+      nonPeakDayRate: 'offpeak',
+      wdPeakStart: 7, wdPeakEnd: 23, wePeakStart: 9, wePeakEnd: 21,
+      weekdays: 21.5, weekends: 8.5,
+      pkgs: [
+        { name: 'Standard user - Flex rates', daily: 3.3235, isFlat: false, peak: 0.312, offPeak: 0.2108, enabled: true  },
+        { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
+        { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
+        { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
+      ]
+    }
+  },
+  {
+    id: 'preset-genesis-peak',
+    name: '20260802-Genisis-peak-hours',
+    data: {
+      name: 'Genisis', peakDays: 'all',
+      peakStart: 7, peakEnd: 21, peak2Start: 17, peak2End: 21.5,
+      nonPeakDayRate: 'offpeak',
+      wdPeakStart: 7, wdPeakEnd: 21, wePeakStart: 9, wePeakEnd: 21,
+      weekdays: 21.5, weekends: 8.5,
+      pkgs: [
+        { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
+        { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
+        { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
+        { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
+      ]
+    }
+  },
+  {
     id: 'preset-genesis-standard-flat',
     name: '20260802-Genisis-standard-Flat',
     data: {
@@ -237,7 +273,41 @@ const PRESETS = [
       wdPeakStart: 7, wdPeakEnd: 23, wePeakStart: 9, wePeakEnd: 21,
       weekdays: 21.5, weekends: 8.5,
       pkgs: [
-        { name: 'Standard - Flat', daily: 2.6275, isFlat: true,  peak: 0.2853,  offPeak: 0.2853,  enabled: true  },
+        { name: 'Standard user - Flat rates', daily: 2.6275, isFlat: true,  peak: 0.2853,  offPeak: 0.2853,  enabled: true  },
+        { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
+        { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
+        { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
+      ]
+    }
+  },
+  {
+    id: 'preset-contact-good-charge',
+    name: '20260802-Contact-Good-Charge',
+    data: {
+      name: 'Contact', peakDays: 'all',
+      peakStart: 7, peakEnd: 21, peak2Start: 17, peak2End: 21.5,
+      nonPeakDayRate: 'offpeak',
+      wdPeakStart: 7, wdPeakEnd: 21, wePeakStart: 9, wePeakEnd: 21,
+      weekdays: 21.5, weekends: 8.5,
+      pkgs: [
+        { name: 'Good Charge', daily: 3.566, isFlat: false, peak: 0.33005, offPeak: 0.161, enabled: true  },
+        { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
+        { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
+        { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
+      ]
+    }
+  },
+  {
+    id: 'preset-contact-basic',
+    name: '20260802-Contact-Basic',
+    data: {
+      name: 'Contact', peakDays: 'all',
+      peakStart: 7, peakEnd: 23, peak2Start: 17, peak2End: 21.5,
+      nonPeakDayRate: 'offpeak',
+      wdPeakStart: 7, wdPeakEnd: 23, wePeakStart: 9, wePeakEnd: 21,
+      weekdays: 21.5, weekends: 8.5,
+      pkgs: [
+        { name: 'Basic plan', daily: 3.221, isFlat: true, peak: 0.28279, offPeak: 0.28279, enabled: true  },
         { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
         { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
         { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
@@ -253,7 +323,7 @@ const PRESETS = [
       wdPeakStart: 7, wdPeakEnd: 23, wePeakStart: 9, wePeakEnd: 21,
       weekdays: 21.5, weekends: 8.5,
       pkgs: [
-        { name: 'Standard - Flat', daily: 3.221,  isFlat: true,  peak: 0.28279, offPeak: 0.28279, enabled: true  },
+        { name: 'Standard user - Flat rates', daily: 3.221,  isFlat: true,  peak: 0.28279, offPeak: 0.28279, enabled: true  },
         { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
         { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
         { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
@@ -274,6 +344,7 @@ const s = {
     wdPeakStart: 7,  wdPeakEnd: 23,
     wePeakStart: 9,  wePeakEnd: 21,
     weekdays: 21.5,  weekends: 8.5,
+    peak2Start: 17, peak2End: 21.5,
     pkgs: Array.from({length:4}, () => ({
       name:'', daily:'', isFlat:false, peak:'', offPeak:'', enabled:true
     }))
@@ -318,6 +389,10 @@ function getDailyPkOp(co) {
       const weF = peakFrac(co.wePeakStart, co.wePeakEnd);
       return {custom:true, wdPk:d*wdF, wdOp:d*(1-wdF), wePk:d*weF, weOp:d*(1-weF), d};
     }
+    if (co.peakDays === 'dual') {
+      const tf = Math.min(peakFrac(co.peakStart, co.peakEnd) + peakFrac(co.peak2Start, co.peak2End), 1);
+      return {pkPerDay:d*tf, opPerDay:d*(1-tf), d};
+    }
     return {pkPerDay:d*pp, opPerDay:d*(1-pp), d};
   }
   let hrs;
@@ -339,6 +414,11 @@ function getDailyPkOp(co) {
     });
     return {custom:true, wdPk, wdOp:d-wdPk, wePk, weOp:d-wePk, d};
   }
+  if (co.peakDays === 'dual') {
+    let pk=0, op=0;
+    hrs.forEach((v,h) => (isPeakHour(h, co.peakStart, co.peakEnd) || isPeakHour(h, co.peak2Start, co.peak2End)) ? (pk+=v) : (op+=v));
+    return {pkPerDay:pk, opPerDay:op, d};
+  }
   let pk=0, op=0;
   hrs.forEach((v,h) => isPeakHour(h, co.peakStart, co.peakEnd) ? (pk+=v) : (op+=v));
   return {pkPerDay:pk, opPerDay:op, d};
@@ -351,7 +431,7 @@ function monthlyKwh(co) {
   if (co.peakDays === 'custom') {
     return {pk: day.wdPk*wd + day.wePk*we, op: day.wdOp*wd + day.weOp*we, tot: day.d*30};
   }
-  if (co.peakDays === 'all') {
+  if (co.peakDays === 'all' || co.peakDays === 'dual') {
     return {pk: day.pkPerDay*30, op: day.opPerDay*30, tot: day.d*30};
   }
   const pdC = co.peakDays==='weekday' ? wd : we;
@@ -381,8 +461,9 @@ function renderCos() {
   document.getElementById('coGrid').innerHTML = s.cos.map((co,ci) => {
     const col = COLORS[ci];
     const pd  = co.peakDays;
-    const showExtra  = pd !== 'all';
+    const showExtra  = pd !== 'all' && pd !== 'dual';
     const showCustom = pd === 'custom';
+    const showDual   = pd === 'dual';
     const otherLabel = pd==='weekday' ? 'Weekends/holidays' : (pd==='weekend' ? 'Weekdays' : '');
 
     return `
@@ -406,7 +487,7 @@ function renderCos() {
         <div class="prow">
           <span>Peak applies:</span>
           <div class="rg">
-            ${[['all','Every day'],['weekday','Weekdays only'],['weekend','Weekends only'],['custom','Custom']].map(([v,l])=>`
+            ${[['all','Every day'],['dual','Dual peak'],['weekday','Weekdays only'],['weekend','Weekends only'],['custom','Custom']].map(([v,l])=>`
               <label class="ro">
                 <input type="radio" name="pd${ci}" value="${v}" ${pd===v?'checked':''}
                   onchange="s.cos[${ci}].peakDays=this.value;renderCos();renderResults()">
@@ -416,7 +497,7 @@ function renderCos() {
           </div>
         </div>
 
-        ${!showCustom ? `
+        ${!showCustom && !showDual ? `
         <div class="prow">
           <span>Peak hours:</span>
           <input type="number" class="numinput" min="0" max="23" value="${co.peakStart}"
@@ -425,6 +506,27 @@ function renderCos() {
           <input type="number" class="numinput" min="0" max="24" value="${co.peakEnd}"
             oninput="s.cos[${ci}].peakEnd=+this.value;renderResults()">
           <span>:00</span>
+        </div>
+        ` : ''}
+
+        ${showDual ? `
+        <div class="prow">
+          <span>Peak window 1:</span>
+          <input type="number" class="numinput" min="0" max="23" step="0.5" value="${co.peakStart}"
+            oninput="s.cos[${ci}].peakStart=+this.value;renderResults()">
+          <span>:${co.peakStart%1?'30':'00'} to</span>
+          <input type="number" class="numinput" min="0" max="24" step="0.5" value="${co.peakEnd}"
+            oninput="s.cos[${ci}].peakEnd=+this.value;renderResults()">
+          <span>:${co.peakEnd%1?'30':'00'}</span>
+        </div>
+        <div class="prow">
+          <span>Peak window 2:</span>
+          <input type="number" class="numinput" min="0" max="23" step="0.5" value="${co.peak2Start}"
+            oninput="s.cos[${ci}].peak2Start=+this.value;renderResults()">
+          <span>:${co.peak2Start%1?'30':'00'} to</span>
+          <input type="number" class="numinput" min="0" max="24" step="0.5" value="${co.peak2End}"
+            oninput="s.cos[${ci}].peak2End=+this.value;renderResults()">
+          <span>:${co.peak2End%1?'30':'00'}</span>
         </div>
         ` : ''}
 
@@ -612,6 +714,21 @@ function renderResults() {
   });
   rows.sort((a,b)=>a.total-b.total);
 
+  // Warn if any provider has plans from different peak configurations
+  const peakWarnings = [];
+  s.cos.forEach((co, ci) => {
+    const nonFlat = co.pkgs.filter(p => p.enabled && !p.isFlat && p._peakKey);
+    if (nonFlat.length < 2) return;
+    const keys = [...new Set(nonFlat.map(p => p._peakKey))];
+    if (keys.length > 1) {
+      const names = nonFlat.map(p => p.name || '(unnamed)').join(', ');
+      peakWarnings.push(`⚠️ ${co.name || `Provider ${ci+1}`}: plans "${names}" were designed for different peak schedules. All are currently calculated using the same peak hours — please verify the results reflect your actual tariff.`);
+    }
+  });
+  document.getElementById('peakWarn').innerHTML = peakWarnings.length
+    ? peakWarnings.map(w => `<div class="peak-warn">${esc(w)}</div>`).join('')
+    : '';
+
   if (!rows.length) {
     document.getElementById('sumBar').innerHTML = `<span style="color:var(--light)">Enter plan rates and usage data to see comparisons…</span>`;
     document.getElementById('tBody').innerHTML  = `<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--light);font-size:13px">No data yet — enter plan details above to get started</td></tr>`;
@@ -657,16 +774,101 @@ function saveCompany(ci) {
   toast(`✓ Saved "${name}"`);
   renderCos();
 }
+// Peak config fingerprint for mismatch detection
+function makePeakKey(co) {
+  return [co.peakDays, co.peakStart, co.peakEnd, co.peak2Start??'', co.peak2End??''].join('|');
+}
+
+// Check whether two companies have different peak settings
+function peakSettingsDiffer(a, b) {
+  return ['peakDays','peakStart','peakEnd','peak2Start','peak2End',
+          'wdPeakStart','wdPeakEnd','wePeakStart','wePeakEnd'].some(k =>
+    b[k] !== undefined && a[k] !== b[k]
+  );
+}
+
+// Copy peak-related fields from b into a
+function applyPeakSettings(a, b) {
+  ['peakDays','peakStart','peakEnd','peak2Start','peak2End',
+   'nonPeakDayRate','wdPeakStart','wdPeakEnd','wePeakStart','wePeakEnd',
+   'weekdays','weekends'].forEach(k => { if (b[k] !== undefined) a[k] = b[k]; });
+}
+
 function loadCompany(ci, profileId) {
   if (!profileId) return;
   const profile = profileId.startsWith('preset-')
     ? PRESETS.find(p => p.id === profileId)
     : getSaved().find(p => String(p.id) === String(profileId));
   if (!profile) return;
-  if (!confirm(`Load "${profile.name}"? This will overwrite Provider ${ci+1}'s current data.`)) { renderCos(); return; }
-  s.cos[ci] = JSON.parse(JSON.stringify(profile.data));
+
+  const cur     = s.cos[ci];
+  const curName = (cur.name || '').trim();
+  const inName  = (profile.data.name || '').trim();
+  const inData  = profile.data;
+
+  // Detect "peak-time-only" profile: no enabled plans have any rate data
+  const hasPlanData = inData.pkgs.some(p =>
+    p.enabled && ((p.daily !== '' && p.daily !== 0) || (p.peak !== '' && p.peak !== 0))
+  );
+
+  if (!hasPlanData) {
+    // Peak-time-only: update peak settings only, no plan slot used
+    if (curName && peakSettingsDiffer(cur, inData)) {
+      if (!confirm(`"${profile.name}" has different peak hours than Provider ${ci+1}'s current settings. Overwrite peak settings?`)) { renderCos(); return; }
+    }
+    applyPeakSettings(cur, inData);
+    if (!curName && inName) cur.name = inName;
+    renderCos(); renderResults();
+    toast(`✓ Peak settings updated for "${inName || profile.name}"`);
+    return;
+  }
+
+  // Provider slot is empty → full replace
+  if (!curName) {
+    s.cos[ci] = JSON.parse(JSON.stringify(inData));
+    renderCos(); renderResults();
+    toast(`✓ Loaded "${profile.name}"`);
+    return;
+  }
+
+  // Provider name mismatch → block merge
+  if (inName && curName !== inName) {
+    alert(`⚠️ Cannot merge: Provider ${ci+1} is "${curName}" but the profile belongs to "${inName}".\nClear the provider first, or choose a profile from the same company.`);
+    renderCos();
+    return;
+  }
+
+  // Same provider → check if peak settings will change
+  if (peakSettingsDiffer(cur, inData)) {
+    if (!confirm(`"${profile.name}" has different peak hours than Provider ${ci+1}'s current settings. Merging will also update the peak hours. Continue?`)) { renderCos(); return; }
+    applyPeakSettings(cur, inData);
+  }
+
+  // Merge enabled plans, stamping source peak key for mismatch detection
+  const inPeakKey = makePeakKey(inData);
+  const inPlans = inData.pkgs.filter(p => p.enabled);
+  for (const plan of inPlans) {
+    const planCopy = JSON.parse(JSON.stringify(plan));
+    if (!plan.isFlat) planCopy._peakKey = inPeakKey;
+    const emptyIdx = cur.pkgs.findIndex(p => (p.name || '').trim() === '');
+    if (emptyIdx !== -1) {
+      cur.pkgs[emptyIdx] = planCopy;
+    } else {
+      const slotList = cur.pkgs.map((p, i) => `${i+1}: ${p.name || '(unnamed)'}`).join('\n');
+      const choice = prompt(`All plan slots are taken. Where should "${plan.name}" go?\n\n${slotList}\n\nEnter 1–4 (cancel to skip):`);
+      const idx = parseInt(choice) - 1;
+      if (idx >= 0 && idx <= 3) {
+        cur.pkgs[idx] = planCopy;
+      } else {
+        toast('Cancelled');
+        renderCos();
+        return;
+      }
+    }
+  }
+
   renderCos(); renderResults();
-  toast(`✓ Loaded "${profile.name}"`);
+  toast(`✓ Merged plans into Provider ${ci+1}`);
 }
 
 // ═══════════════════════════════════════════════
