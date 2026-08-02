@@ -474,6 +474,7 @@ function renderCos() {
           oninput="s.cos[${ci}].name=this.value;renderResults()">
         <button class="hbtn ai" onclick="openAiModal(${ci})">✨ AI</button>
         <button class="hbtn" onclick="saveCompany(${ci})">💾 Save</button>
+        <button class="hbtn" onclick="clearCompany(${ci})" title="Clear all inputs for this provider">🗑 Clear</button>
         <select class="load-sel" onchange="loadCompany(${ci},this.value)">
           <option value="">📂 Load…</option>
           <optgroup label="Built-in presets">
@@ -763,6 +764,20 @@ function getSaved() {
   try { return JSON.parse(localStorage.getItem('nz-elec-saved')||'[]'); }
   catch { return []; }
 }
+function clearCompany(ci) {
+  if (!confirm(`Clear all inputs for Provider ${ci+1}?`)) return;
+  s.cos[ci] = {
+    name: '', peakDays: 'all',
+    peakStart: 7, peakEnd: 23, peak2Start: 17, peak2End: 21.5,
+    nonPeakDayRate: 'offpeak',
+    wdPeakStart: 7, wdPeakEnd: 23, wePeakStart: 9, wePeakEnd: 21,
+    weekdays: 21.5, weekends: 8.5,
+    pkgs: Array.from({length:4}, () => ({name:'', daily:'', isFlat:false, peak:'', offPeak:'', enabled:true}))
+  };
+  renderCos(); renderResults();
+  toast(`✓ Provider ${ci+1} cleared`);
+}
+
 function saveCompany(ci) {
   const co   = s.cos[ci];
   const name = (co.name||`Provider ${ci+1}`).trim();
