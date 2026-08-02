@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NZ Electricity Plan Comparator</title>
+  <style>
+    :root {
+      --c0:#4f46e5; --c1:#0891b2; --c2:#d97706;
+      --accent:#4f46e5; --accent-bg:#eef2ff;
+      --green:#15803d; --green-bg:#f0fdf4;
+      --amber-bg:#fffbeb;
+      --border:#e5e7eb; --bg:#f3f4f6; --white:#fff;
+      --text:#111827; --muted:#6b7280; --light:#9ca3af;
+      --shadow:0 1px 3px rgba(0,0,0,0.08);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+    .wrap{max-width:1160px;margin:0 auto;padding:28px 20px}
+    h1{font-size:20px;font-weight:700}
+    .subtitle{color:var(--muted);font-size:13px;margin-top:4px;margin-bottom:24px}
+    .card{background:var(--white);border-radius:12px;padding:22px 24px;margin-bottom:20px;box-shadow:var(--shadow);border:1px solid var(--border)}
+    .sect-title{font-size:14px;font-weight:600;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+    .pill{font-size:11px;padding:2px 10px;border-radius:20px;font-weight:500;background:var(--accent-bg);color:var(--accent)}
+    .pill-g{background:var(--green-bg);color:var(--green)}
+
+    .co-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    .co-box{border:1.5px solid var(--border);border-radius:10px;overflow:hidden}
+    .co-head{padding:9px 10px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+    .co-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+    .co-name{flex:1;min-width:80px;font-size:13px;font-weight:600;border:none;background:transparent;outline:none}
+    .co-name::placeholder{color:var(--light);font-weight:400}
+    .hbtn{padding:3px 7px;border:1px solid var(--border);border-radius:5px;background:var(--white);font-size:11px;cursor:pointer;color:var(--muted);white-space:nowrap;transition:all .15s}
+    .hbtn:hover{border-color:var(--accent);color:var(--accent)}
+    .hbtn.ai{border-color:#a78bfa;color:#7c3aed;background:#f5f3ff}
+    .hbtn.ai:hover{background:#ede9fe}
+    .load-sel{padding:3px 4px;border:1px solid var(--border);border-radius:5px;font-size:11px;color:var(--muted);background:var(--white);cursor:pointer;max-width:100px}
+    .load-sel:focus{outline:none;border-color:var(--accent)}
+
+    .co-peak{padding:8px 12px 10px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
+    .prow{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+    .prow span{white-space:nowrap}
+    .numinput{width:46px;padding:3px 5px;border:1px solid var(--border);border-radius:5px;font-size:12px;text-align:center;color:var(--text)}
+    .numinput:focus{outline:none;border-color:var(--accent)}
+    .numinput.sm{width:52px}
+    .rg{display:flex;gap:8px;flex-wrap:wrap}
+    .ro{display:flex;align-items:center;gap:3px;cursor:pointer;font-size:12px}
+    .ro input{cursor:pointer}
+    .extra-peak{background:var(--amber-bg);border-radius:7px;padding:7px 9px;display:flex;flex-direction:column;gap:6px}
+    .twin-peak{display:flex;flex-direction:column;gap:5px}
+    .twin-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+    .twin-label{font-size:11px;color:var(--muted);min-width:52px;font-weight:500}
+    .day-count-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+
+    .pkg-list{padding:4px 0}
+    .pkg-row{padding:8px 12px;border-bottom:1px solid #f3f4f6}
+    .pkg-row:last-child{border-bottom:none}
+    .pkg-row.off{opacity:.35}
+    .pkg-top{display:flex;align-items:center;gap:5px;margin-bottom:6px}
+    .pkg-enable{cursor:pointer;accent-color:var(--accent);width:13px;height:13px;flex-shrink:0}
+    .pkg-num{font-size:11px;color:var(--light);min-width:12px}
+    .pkg-name{flex:1;font-size:13px;font-weight:500;border:none;background:transparent;outline:none;color:var(--text)}
+    .pkg-name::placeholder{color:var(--light);font-weight:400}
+    .flat-lbl{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--muted);cursor:pointer;white-space:nowrap}
+    .pkg-rates{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+    .rf{display:flex;flex-direction:column;gap:2px}
+    .rl{font-size:10px;color:var(--light);text-transform:uppercase;letter-spacing:.03em}
+    .ri{padding:4px 6px;border:1px solid var(--border);border-radius:5px;font-size:12px;color:var(--text);width:100%}
+    .ri:focus{outline:none;border-color:var(--accent)}
+    .ri:disabled{background:#f9fafb;color:var(--light)}
+
+    .mode-bar{display:flex;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:3px;gap:2px;width:fit-content;margin-bottom:18px}
+    .mb{padding:7px 18px;border:none;background:transparent;border-radius:7px;font-size:13px;cursor:pointer;color:var(--muted);font-weight:500;transition:all .15s}
+    .mb.on{background:var(--white);color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+
+    .urow{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end}
+    .field{display:flex;flex-direction:column;gap:5px}
+    .field label{font-size:12px;color:var(--muted);font-weight:500}
+    .field input[type=number]{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:15px;width:170px;color:var(--text)}
+    .field input[type=number]:focus{outline:none;border-color:var(--accent)}
+    .unit{font-size:12px;color:var(--muted)}
+    .tip{margin-top:12px;padding:9px 12px;background:var(--accent-bg);border-radius:6px;font-size:12px;color:var(--accent)}
+    .slots-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    .sc{display:flex;flex-direction:column;gap:4px}
+    .sl{font-size:11px;color:var(--muted);text-align:center}
+    .si{padding:8px 4px;border:1px solid var(--border);border-radius:7px;font-size:13px;text-align:center;color:var(--text);width:100%}
+    .si:focus{outline:none;border-color:var(--accent)}
+    .h-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+    .hc{display:flex;flex-direction:column;gap:2px}
+    .hl{font-size:10px;color:var(--muted);text-align:center}
+    .hi{padding:5px 2px;border:1px solid var(--border);border-radius:5px;font-size:11px;text-align:center;color:var(--text);width:100%}
+    .hi:focus{outline:none;border-color:var(--accent)}
+    .usum{font-size:12px;color:var(--muted);margin-top:12px}
+    .usum strong{color:var(--text)}
+
+    .sum-bar{display:flex;gap:16px;flex-wrap:wrap;padding:11px 16px;background:var(--bg);border-radius:8px;margin-bottom:16px;font-size:13px;color:var(--muted)}
+    .sv{font-weight:600;color:var(--text)}
+    .sv.g{color:var(--green)}
+    table{width:100%;border-collapse:collapse}
+    th{padding:10px 12px;text-align:left;font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid var(--border)}
+    td{padding:11px 12px;border-bottom:1px solid #f3f4f6;font-size:14px}
+    tbody tr:hover{background:var(--bg)}
+    tr.best{background:var(--green-bg)}
+    tr.best td{color:var(--green)}
+    tr.best .total{font-size:16px;font-weight:700}
+    .rk{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-size:12px;font-weight:600;background:#f3f4f6;color:var(--muted)}
+    .rk.g1{background:#fef08a;color:#854d0e}
+    .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle}
+    .mono{font-family:'SF Mono',Monaco,'Courier New',monospace;font-weight:600}
+    .dim{color:var(--muted);font-size:13px}
+
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .2s}
+    .modal-overlay.open{opacity:1;pointer-events:all}
+    .modal-box{background:var(--white);border-radius:14px;width:540px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+    .modal-head{padding:18px 20px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+    .modal-head span{font-size:15px;font-weight:600}
+    .modal-close{border:none;background:transparent;font-size:18px;cursor:pointer;color:var(--light);line-height:1;padding:2px 6px}
+    .modal-close:hover{color:var(--text)}
+    .modal-body{padding:20px}
+    .api-row{display:flex;align-items:flex-end;gap:10px}
+    .save-key-lbl{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;padding-bottom:8px}
+    .ai-textarea{width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;resize:vertical;min-height:140px;color:var(--text);font-family:inherit;margin-top:14px}
+    .ai-textarea:focus{outline:none;border-color:var(--accent)}
+    .ai-tip{margin-top:10px;padding:9px 12px;background:#f5f3ff;border-radius:6px;font-size:12px;color:#6d28d9}
+    .ai-status{margin-top:12px;font-size:13px;min-height:18px}
+    .ai-run-btn{margin-top:16px;width:100%;padding:10px;background:#7c3aed;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s}
+    .ai-run-btn:hover:not(:disabled){background:#6d28d9}
+    .ai-run-btn:disabled{opacity:.6;cursor:not-allowed}
+
+    .toast{position:fixed;bottom:24px;right:24px;background:#111;color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;z-index:200;opacity:0;transition:opacity .2s;pointer-events:none}
+    .toast.show{opacity:1}
+
+    @media(max-width:800px){
+      .co-grid{grid-template-columns:1fr}
+      .slots-grid{grid-template-columns:repeat(2,1fr)}
+      .h-grid{grid-template-columns:repeat(4,1fr)}
+      .mode-bar{flex-wrap:wrap;width:100%}
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>⚡ NZ Electricity Plan Comparator</h1>
+  <p class="subtitle">Enter plan rates and estimated usage to compare 30-day monthly costs (NZD)</p>
+
+  <div class="card">
+    <div class="sect-title">Plan Configuration <span class="pill">3 providers · up to 4 plans each</span></div>
+    <div class="co-grid" id="coGrid"></div>
+  </div>
+
+  <div class="card">
+    <div class="sect-title">Usage Input</div>
+    <div class="mode-bar">
+      <button class="mb on" onclick="setMode('simple')">Quick Estimate</button>
+      <button class="mb" onclick="setMode('slots')">Time Slots (3-hour)</button>
+      <button class="mb" onclick="setMode('hourly')">Hourly Input</button>
+    </div>
+    <div id="usagePanel"></div>
+  </div>
+
+  <div class="card">
+    <div class="sect-title">Cost Comparison <span class="pill pill-g">Sorted by monthly cost · 30 days</span></div>
+    <div class="sum-bar" id="sumBar"><span style="color:var(--light)">Enter plan rates and usage to see comparisons…</span></div>
+    <table>
+      <thead>
+        <tr>
+          <th width="38">#</th><th>Provider</th><th>Plan</th>
+          <th>Energy Cost</th><th>Daily Charge ×30</th><th>Monthly Total</th>
+        </tr>
+      </thead>
+      <tbody id="tBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- AI Modal -->
+<div class="modal-overlay" id="aiModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <span>✨ AI Auto-fill Plans</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="api-row">
+        <div class="field" style="flex:1">
+          <label>OpenAI API Key</label>
+          <input type="password" id="apiKeyInput" placeholder="sk-..." autocomplete="off"
+            style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text)">
+        </div>
+        <label class="save-key-lbl">
+          <input type="checkbox" id="saveKeyCheck"> Remember
+        </label>
+      </div>
+      <textarea class="ai-textarea" id="aiText"
+        placeholder="Paste the pricing page text from an electricity provider's website here. Include plan names, rates ($/kWh), daily charges, and peak hours — AI will extract and fill in the form automatically…"></textarea>
+      <div class="ai-tip">💡 Go to the provider's pricing page → select all text (Ctrl+A / Cmd+A) → copy → paste above. Your API key is stored only in your local browser and never sent to any server other than OpenAI.</div>
+      <div class="ai-status" id="aiStatus"></div>
+      <button class="ai-run-btn" id="aiRunBtn" onclick="runAI()">✨ Extract & Fill</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════
+const COLORS = ['#4f46e5','#0891b2','#d97706'];
+const SLOT_LABELS = ['00:00–03:00','03:00–06:00','06:00–09:00','09:00–12:00',
+                     '12:00–15:00','15:00–18:00','18:00–21:00','21:00–24:00'];
+
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+const s = {
+  cos: Array.from({length:3}, () => ({
+    name: '',
+    peakDays: 'all',           // 'all' | 'weekday' | 'weekend' | 'custom'
+    peakStart: 7, peakEnd: 23,
+    nonPeakDayRate: 'offpeak',
+    wdPeakStart: 7,  wdPeakEnd: 23,
+    wePeakStart: 9,  wePeakEnd: 21,
+    weekdays: 21.5,  weekends: 8.5,
+    pkgs: Array.from({length:4}, () => ({
+      name:'', daily:'', isFlat:false, peak:'', offPeak:'', enabled:true
+    }))
+  })),
+  mode: 'simple',
+  sim: {total:'', peakPct:'40'},
+  slots: Array(8).fill(''),
+  hrs:   Array(24).fill(''),
+};
+
+let _aiCi = 0;
+
+// ═══════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════
+const f   = v => parseFloat(v) || 0;
+const fmt = v => `$${v.toFixed(2)}`;
+const esc = v => String(v)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+function isPeakHour(h, ps, pe) {
+  if (ps <= pe) return h >= ps && h < pe;
+  return h >= ps || h < pe;
+}
+function peakFrac(ps, pe) {
+  if (ps === pe) return 0;
+  if (ps < pe)  return (pe - ps) / 24;
+  return (24 - ps + pe) / 24;
+}
+
+// ═══════════════════════════════════════════════
+// CALCULATION
+// ═══════════════════════════════════════════════
+function getDailyPkOp(co) {
+  if (s.mode === 'simple') {
+    const total = f(s.sim.total);
+    const d  = total / 30;
+    const pp = f(s.sim.peakPct) / 100;
+    if (co.peakDays === 'custom') {
+      const wdF = peakFrac(co.wdPeakStart, co.wdPeakEnd);
+      const weF = peakFrac(co.wePeakStart, co.wePeakEnd);
+      return {custom:true, wdPk:d*wdF, wdOp:d*(1-wdF), wePk:d*weF, weOp:d*(1-weF), d};
+    }
+    return {pkPerDay:d*pp, opPerDay:d*(1-pp), d};
+  }
+  let hrs;
+  if (s.mode === 'hourly') {
+    hrs = s.hrs.map(f);
+  } else {
+    hrs = Array(24).fill(0);
+    s.slots.forEach((v,i) => {
+      const ph = f(v)/3;
+      for (let h=i*3; h<i*3+3; h++) hrs[h] = ph;
+    });
+  }
+  const d = hrs.reduce((a,v)=>a+v, 0);
+  if (co.peakDays === 'custom') {
+    let wdPk=0, wePk=0;
+    hrs.forEach((v,h) => {
+      if (isPeakHour(h, co.wdPeakStart, co.wdPeakEnd)) wdPk += v;
+      if (isPeakHour(h, co.wePeakStart, co.wePeakEnd)) wePk += v;
+    });
+    return {custom:true, wdPk, wdOp:d-wdPk, wePk, weOp:d-wePk, d};
+  }
+  let pk=0, op=0;
+  hrs.forEach((v,h) => isPeakHour(h, co.peakStart, co.peakEnd) ? (pk+=v) : (op+=v));
+  return {pkPerDay:pk, opPerDay:op, d};
+}
+
+function monthlyKwh(co) {
+  const day = getDailyPkOp(co);
+  const wd  = f(co.weekdays) || 21.5;
+  const we  = f(co.weekends) || 8.5;
+  if (co.peakDays === 'custom') {
+    return {pk: day.wdPk*wd + day.wePk*we, op: day.wdOp*wd + day.weOp*we, tot: day.d*30};
+  }
+  if (co.peakDays === 'all') {
+    return {pk: day.pkPerDay*30, op: day.opPerDay*30, tot: day.d*30};
+  }
+  const pdC = co.peakDays==='weekday' ? wd : we;
+  const odC = co.peakDays==='weekday' ? we : wd;
+  const pkFP = day.pkPerDay * pdC;
+  const opFP = day.opPerDay * pdC;
+  const oKwh = day.d * odC;
+  return co.nonPeakDayRate === 'peak'
+    ? {pk: pkFP+oKwh, op: opFP,       tot: day.d*30}
+    : {pk: pkFP,       op: opFP+oKwh, tot: day.d*30};
+}
+
+function calcPkg(co, pkg) {
+  const u = monthlyKwh(co);
+  const energy = pkg.isFlat
+    ? u.tot * f(pkg.peak)
+    : u.pk  * f(pkg.peak) + u.op * f(pkg.offPeak);
+  const daily = f(pkg.daily) * 30;
+  return {energy, daily, total:energy+daily, kwh:u.tot};
+}
+
+// ═══════════════════════════════════════════════
+// RENDER: COMPANIES
+// ═══════════════════════════════════════════════
+function renderCos() {
+  const saved = getSaved();
+  document.getElementById('coGrid').innerHTML = s.cos.map((co,ci) => {
+    const col = COLORS[ci];
+    const pd  = co.peakDays;
+    const showExtra  = pd !== 'all';
+    const showCustom = pd === 'custom';
+    const otherLabel = pd==='weekday' ? 'Weekends/holidays' : (pd==='weekend' ? 'Weekdays' : '');
+
+    return `
+    <div class="co-box">
+      <div class="co-head" style="background:${col}15">
+        <span class="co-dot" style="background:${col}"></span>
+        <input class="co-name" style="color:${col}" placeholder="Provider ${ci+1}" value="${esc(co.name)}"
+          oninput="s.cos[${ci}].name=this.value;renderResults()">
+        <button class="hbtn ai" onclick="openAiModal(${ci})">✨ AI</button>
+        <button class="hbtn" onclick="saveCompany(${ci})">💾 Save</button>
+        <select class="load-sel" onchange="loadCompany(${ci},this.value)">
+          <option value="">📂 Load…</option>
+          ${saved.map(p=>`<option value="${p.id}">${esc(p.name)} (${p.savedAt})</option>`).join('')}
+        </select>
+      </div>
+
+      <div class="co-peak">
+        <div class="prow">
+          <span>Peak applies:</span>
+          <div class="rg">
+            ${[['all','Every day'],['weekday','Weekdays only'],['weekend','Weekends only'],['custom','Custom']].map(([v,l])=>`
+              <label class="ro">
+                <input type="radio" name="pd${ci}" value="${v}" ${pd===v?'checked':''}
+                  onchange="s.cos[${ci}].peakDays=this.value;renderCos();renderResults()">
+                ${l}
+              </label>
+            `).join('')}
+          </div>
+        </div>
+
+        ${!showCustom ? `
+        <div class="prow">
+          <span>Peak hours:</span>
+          <input type="number" class="numinput" min="0" max="23" value="${co.peakStart}"
+            oninput="s.cos[${ci}].peakStart=+this.value;renderResults()">
+          <span>:00 to</span>
+          <input type="number" class="numinput" min="0" max="24" value="${co.peakEnd}"
+            oninput="s.cos[${ci}].peakEnd=+this.value;renderResults()">
+          <span>:00</span>
+        </div>
+        ` : ''}
+
+        ${showExtra ? `
+        <div class="extra-peak">
+          ${showCustom ? `
+          <div class="twin-peak">
+            <div class="twin-row">
+              <span class="twin-label">Weekday:</span>
+              <input type="number" class="numinput" min="0" max="23" value="${co.wdPeakStart}"
+                oninput="s.cos[${ci}].wdPeakStart=+this.value;renderResults()">
+              <span>:00 to</span>
+              <input type="number" class="numinput" min="0" max="24" value="${co.wdPeakEnd}"
+                oninput="s.cos[${ci}].wdPeakEnd=+this.value;renderResults()">
+              <span>:00 peak</span>
+            </div>
+            <div class="twin-row">
+              <span class="twin-label">Weekend:</span>
+              <input type="number" class="numinput" min="0" max="23" value="${co.wePeakStart}"
+                oninput="s.cos[${ci}].wePeakStart=+this.value;renderResults()">
+              <span>:00 to</span>
+              <input type="number" class="numinput" min="0" max="24" value="${co.wePeakEnd}"
+                oninput="s.cos[${ci}].wePeakEnd=+this.value;renderResults()">
+              <span>:00 peak</span>
+            </div>
+          </div>
+          ` : `
+          <div class="prow">
+            <span>${otherLabel} charged at:</span>
+            <div class="rg">
+              <label class="ro">
+                <input type="radio" name="npr${ci}" value="offpeak" ${co.nonPeakDayRate==='offpeak'?'checked':''}
+                  onchange="s.cos[${ci}].nonPeakDayRate=this.value;renderResults()">
+                Off-peak rate
+              </label>
+              <label class="ro">
+                <input type="radio" name="npr${ci}" value="peak" ${co.nonPeakDayRate==='peak'?'checked':''}
+                  onchange="s.cos[${ci}].nonPeakDayRate=this.value;renderResults()">
+                Peak rate
+              </label>
+            </div>
+          </div>
+          `}
+          <div class="day-count-row">
+            <span>Weekdays
+              <input type="number" class="numinput sm" step="0.5" min="0" max="30" value="${co.weekdays}"
+                oninput="s.cos[${ci}].weekdays=+this.value;renderResults()">
+              days/month
+            </span>
+            <span>Weekends/holidays
+              <input type="number" class="numinput sm" step="0.5" min="0" max="30" value="${co.weekends}"
+                oninput="s.cos[${ci}].weekends=+this.value;renderResults()">
+              days/month
+            </span>
+          </div>
+        </div>
+        ` : ''}
+      </div>
+
+      <div class="pkg-list">
+        ${co.pkgs.map((p,pi) => renderPkgRow(ci,pi,p)).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderPkgRow(ci, pi, p) {
+  const dis = !p.enabled;
+  return `
+    <div class="pkg-row${dis?' off':''}">
+      <div class="pkg-top">
+        <input type="checkbox" class="pkg-enable" ${p.enabled?'checked':''}
+          title="${p.enabled?'Click to disable':'Click to enable'}"
+          onchange="s.cos[${ci}].pkgs[${pi}].enabled=this.checked;renderCos();renderResults()">
+        <span class="pkg-num">${pi+1}.</span>
+        <input class="pkg-name" placeholder="Plan name" value="${esc(p.name)}"
+          oninput="s.cos[${ci}].pkgs[${pi}].name=this.value;renderResults()"
+          ${dis?'disabled':''}>
+        <label class="flat-lbl">
+          <input type="checkbox" ${p.isFlat?'checked':''} ${dis?'disabled':''}
+            onchange="s.cos[${ci}].pkgs[${pi}].isFlat=this.checked;renderCos();renderResults()">
+          Flat rate
+        </label>
+      </div>
+      <div class="pkg-rates">
+        <div class="rf">
+          <span class="rl">Daily charge $/day</span>
+          <input class="ri" type="number" step="0.001" min="0" placeholder="0.000" value="${p.daily}"
+            oninput="s.cos[${ci}].pkgs[${pi}].daily=this.value;renderResults()"
+            ${dis?'disabled':''}>
+        </div>
+        <div class="rf">
+          <span class="rl">${p.isFlat?'Rate':'Peak'} $/kWh</span>
+          <input class="ri" type="number" step="0.0001" min="0" placeholder="0.0000" value="${p.peak}"
+            oninput="s.cos[${ci}].pkgs[${pi}].peak=this.value;renderResults()"
+            ${dis?'disabled':''}>
+        </div>
+        <div class="rf">
+          <span class="rl">Off-peak $/kWh</span>
+          <input class="ri" type="number" step="0.0001" min="0" placeholder="0.0000" value="${p.offPeak}"
+            oninput="s.cos[${ci}].pkgs[${pi}].offPeak=this.value;renderResults()"
+            ${dis||p.isFlat?'disabled':''}>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════
+// RENDER: USAGE
+// ═══════════════════════════════════════════════
+function renderUsage() {
+  const el = document.getElementById('usagePanel');
+  if (s.mode === 'simple') {
+    el.innerHTML = `
+      <div class="urow">
+        <div class="field">
+          <label>Monthly usage</label>
+          <input type="number" step="1" min="0" placeholder="e.g. 300" value="${s.sim.total}"
+            oninput="s.sim.total=this.value;renderResults()">
+          <span class="unit">kWh / month</span>
+        </div>
+        <div class="field">
+          <label>Peak usage percentage</label>
+          <input type="number" min="0" max="100" step="1" placeholder="40" value="${s.sim.peakPct}"
+            oninput="s.sim.peakPct=this.value;renderResults()">
+          <span class="unit">% during peak hours</span>
+        </div>
+      </div>
+      <div class="tip">💡 In Quick Estimate mode, the peak % applies to peak days. For "Custom" peak configuration, peak proportions are derived automatically from the defined peak windows. Use Time Slot or Hourly mode for more accurate results.</div>
+    `;
+  } else if (s.mode === 'slots') {
+    el.innerHTML = `
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Enter the <strong>daily average</strong> usage for each 3-hour slot (kWh/day). Peak/off-peak split is calculated per provider based on their peak hours.</p>
+      <div class="slots-grid">
+        ${SLOT_LABELS.map((t,i)=>`
+          <div class="sc">
+            <span class="sl">${t}</span>
+            <input class="si" type="number" min="0" step="0.1" placeholder="0" value="${s.slots[i]}"
+              oninput="s.slots[${i}]=this.value;renderResults();updateSum()">
+          </div>
+        `).join('')}
+      </div>
+      <div class="usum" id="usum"></div>
+    `;
+    updateSum();
+  } else {
+    el.innerHTML = `
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Enter the <strong>daily average</strong> usage for each hour (kWh/day). Peak/off-peak split is calculated per provider based on their peak hours.</p>
+      <div class="h-grid">
+        ${Array.from({length:24},(_,h)=>`
+          <div class="hc">
+            <span class="hl">${String(h).padStart(2,'0')}:00</span>
+            <input class="hi" type="number" min="0" step="0.01" placeholder="0" value="${s.hrs[h]}"
+              oninput="s.hrs[${h}]=this.value;renderResults();updateSum()">
+          </div>
+        `).join('')}
+      </div>
+      <div class="usum" id="usum"></div>
+    `;
+    updateSum();
+  }
+}
+
+function updateSum() {
+  const el = document.getElementById('usum');
+  if (!el) return;
+  const daily = s.mode==='slots'
+    ? s.slots.reduce((a,v)=>a+f(v),0)
+    : s.hrs.reduce((a,v)=>a+f(v),0);
+  el.innerHTML = `Total: <strong>${daily.toFixed(2)} kWh/day</strong> — approx. <strong>${(daily*30).toFixed(0)} kWh/month</strong> (×30 days)`;
+}
+
+// ═══════════════════════════════════════════════
+// RENDER: RESULTS
+// ═══════════════════════════════════════════════
+function renderResults() {
+  updateSum();
+  const rows = [];
+  s.cos.forEach((co,ci) => {
+    co.pkgs.forEach((pkg,pi) => {
+      if (!pkg.enabled || f(pkg.peak)===0) return;
+      const c = calcPkg(co, pkg);
+      rows.push({ci, cname:co.name||`Provider ${ci+1}`, pname:pkg.name||`Plan ${pi+1}`, ...c});
+    });
+  });
+  rows.sort((a,b)=>a.total-b.total);
+
+  if (!rows.length) {
+    document.getElementById('sumBar').innerHTML = `<span style="color:var(--light)">Enter plan rates and usage data to see comparisons…</span>`;
+    document.getElementById('tBody').innerHTML  = `<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--light);font-size:13px">No data yet — enter plan details above to get started</td></tr>`;
+    return;
+  }
+
+  const minT = rows[0].total, maxT = rows[rows.length-1].total;
+  document.getElementById('sumBar').innerHTML = `
+    <span>Monthly usage: <span class="sv">${rows[0].kwh.toFixed(0)} kWh</span></span>
+    <span>·</span>
+    <span>Cheapest: <span class="sv g">${fmt(minT)}/mo</span></span>
+    <span>·</span>
+    <span>Most expensive: <span class="sv">${fmt(maxT)}/mo</span></span>
+    ${rows.length>1&&maxT>minT?`<span>·</span><span>Max savings: <span class="sv g">${fmt(maxT-minT)}/mo</span></span>`:''}
+  `;
+  document.getElementById('tBody').innerHTML = rows.map((r,i)=>`
+    <tr class="${i===0?'best':''}">
+      <td><span class="rk ${i===0?'g1':''}">${i+1}</span></td>
+      <td><span class="dot" style="background:${COLORS[r.ci]}"></span>${esc(r.cname)}</td>
+      <td>${esc(r.pname)}</td>
+      <td class="dim mono">${fmt(r.energy)}</td>
+      <td class="dim mono">${fmt(r.daily)}</td>
+      <td class="mono total">${fmt(r.total)}</td>
+    </tr>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════
+// SAVE / LOAD
+// ═══════════════════════════════════════════════
+function getSaved() {
+  try { return JSON.parse(localStorage.getItem('nz-elec-saved')||'[]'); }
+  catch { return []; }
+}
+function saveCompany(ci) {
+  const co   = s.cos[ci];
+  const name = (co.name||`Provider ${ci+1}`).trim();
+  const saved = getSaved();
+  const idx   = saved.findIndex(p=>p.name===name);
+  const prof  = {id:idx>=0?saved[idx].id:Date.now(), savedAt:new Date().toLocaleDateString('en-NZ'), name, data:JSON.parse(JSON.stringify(co))};
+  if (idx>=0) saved[idx]=prof; else saved.push(prof);
+  localStorage.setItem('nz-elec-saved', JSON.stringify(saved));
+  toast(`✓ Saved "${name}"`);
+  renderCos();
+}
+function loadCompany(ci, profileId) {
+  if (!profileId) return;
+  const profile = getSaved().find(p=>String(p.id)===String(profileId));
+  if (!profile) return;
+  if (!confirm(`Load "${profile.name}"? This will overwrite Provider ${ci+1}'s current data.`)) { renderCos(); return; }
+  s.cos[ci] = JSON.parse(JSON.stringify(profile.data));
+  renderCos(); renderResults();
+  toast(`✓ Loaded "${profile.name}"`);
+}
+
+// ═══════════════════════════════════════════════
+// AI MODAL
+// ═══════════════════════════════════════════════
+function openAiModal(ci) {
+  _aiCi = ci;
+  const key = localStorage.getItem('nz-elec-openai-key') || '';
+  document.getElementById('apiKeyInput').value = key;
+  document.getElementById('saveKeyCheck').checked = !!key;
+  document.getElementById('aiText').value = '';
+  document.getElementById('aiStatus').innerHTML = '';
+  document.getElementById('aiRunBtn').disabled = false;
+  document.getElementById('aiRunBtn').textContent = '✨ Extract & Fill';
+  document.getElementById('aiModal').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('aiModal').classList.remove('open');
+}
+document.getElementById('aiModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+async function runAI() {
+  const apiKey = document.getElementById('apiKeyInput').value.trim();
+  const text   = document.getElementById('aiText').value.trim();
+  if (!apiKey) { setAiStatus('error','Please enter your OpenAI API Key'); return; }
+  if (!text)   { setAiStatus('error','Please paste some pricing page text'); return; }
+
+  if (document.getElementById('saveKeyCheck').checked)
+    localStorage.setItem('nz-elec-openai-key', apiKey);
+
+  const btn = document.getElementById('aiRunBtn');
+  btn.disabled = true;
+  btn.textContent = 'Extracting…';
+  setAiStatus('loading','Calling AI, please wait…');
+
+  const prompt = `You are a New Zealand electricity pricing data extractor. Extract plan pricing information from the text below and return a JSON object.
+
+JSON format:
+{
+  "name": "company name",
+  "peakDays": "all" | "weekday" | "weekend" | "custom",
+  "peakStart": 7,
+  "peakEnd": 23,
+  "nonPeakDayRate": "offpeak" | "peak",
+  "wdPeakStart": 7,
+  "wdPeakEnd": 23,
+  "wePeakStart": 9,
+  "wePeakEnd": 21,
+  "weekdays": 21.5,
+  "weekends": 8.5,
+  "pkgs": [
+    {
+      "name": "plan name",
+      "daily": 1.50,
+      "isFlat": false,
+      "peak": 0.2800,
+      "offPeak": 0.1500,
+      "enabled": true
+    }
+  ]
+}
+
+Rules:
+- peakDays: "all"=peak/off-peak every day, "weekday"=only weekdays have peak/off-peak, "weekend"=only weekends, "custom"=weekdays and weekends have different peak windows
+- If weekday and weekend peak hours differ, use "custom" and fill wdPeakStart/wdPeakEnd/wePeakStart/wePeakEnd
+- Convert rates to NZD/kWh (if source uses cents, divide by 100: e.g. 28c → 0.28)
+- Daily charge in NZD/day
+- If flat rate (no peak/off-peak), set isFlat to true, put the rate in peak, same value in offPeak
+- Extract up to 4 plans
+- Use sensible defaults for missing fields
+
+Text:
+${text}`;
+
+  try {
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [{role:'user', content:prompt}],
+        response_format: {type:'json_object'},
+        max_tokens: 1200
+      })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.error?.message || `HTTP ${res.status}`);
+    }
+    const data   = await res.json();
+    const result = JSON.parse(data.choices[0].message.content);
+    applyAiResult(_aiCi, result);
+    setAiStatus('success','✓ Extraction successful — form filled in!');
+    setTimeout(closeModal, 1400);
+  } catch(e) {
+    setAiStatus('error', `Failed: ${e.message}`);
+    btn.disabled = false;
+    btn.textContent = '✨ Extract & Fill';
+  }
+}
+
+function setAiStatus(type, msg) {
+  const el = document.getElementById('aiStatus');
+  el.style.color = type==='success'?'var(--green)':type==='error'?'#dc2626':'var(--muted)';
+  el.textContent = msg;
+}
+function applyAiResult(ci, r) {
+  const co = s.cos[ci];
+  ['name','peakDays','peakStart','peakEnd','nonPeakDayRate',
+   'wdPeakStart','wdPeakEnd','wePeakStart','wePeakEnd','weekdays','weekends']
+    .forEach(k => { if (r[k] !== undefined) co[k] = r[k]; });
+  if (Array.isArray(r.pkgs)) {
+    const list = r.pkgs.slice(0,4);
+    list.forEach((p,i) => {
+      co.pkgs[i] = {name:p.name??'', daily:p.daily??'', isFlat:p.isFlat??false,
+                    peak:p.peak??'', offPeak:p.offPeak??'', enabled:true};
+    });
+    for (let i=list.length; i<4; i++) co.pkgs[i].enabled = false;
+  }
+  renderCos(); renderResults();
+  toast(`✓ Filled in "${co.name || `Provider ${ci+1}`}"`);
+}
+
+// ═══════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════
+function setMode(m) {
+  s.mode = m;
+  document.querySelectorAll('.mb').forEach((b,i) => {
+    b.classList.toggle('on', ['simple','slots','hourly'][i]===m);
+  });
+  renderUsage(); renderResults();
+}
+
+let _toastT = null;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  if (_toastT) clearTimeout(_toastT);
+  _toastT = setTimeout(()=>el.classList.remove('show'), 2200);
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+renderCos(); renderUsage(); renderResults();
+</script>
+</body>
+</html>
