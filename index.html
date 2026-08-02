@@ -34,6 +34,7 @@
     .hbtn:hover{border-color:var(--accent);color:var(--accent)}
     .hbtn.ai{border-color:#a78bfa;color:#7c3aed;background:#f5f3ff}
     .hbtn.ai:hover{background:#ede9fe}
+    .hbtn.ico{padding:3px 6px;font-size:13px}
     .load-sel{padding:3px 4px;border:1px solid var(--border);border-radius:5px;font-size:11px;color:var(--muted);background:var(--white);cursor:pointer;max-width:100px}
     .load-sel:focus{outline:none;border-color:var(--accent)}
 
@@ -52,7 +53,16 @@
     .twin-label{font-size:11px;color:var(--muted);min-width:52px;font-weight:500}
     .day-count-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--muted)}
 
+    .peak-toggle{padding:8px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);cursor:pointer;font-size:12px;color:var(--muted);user-select:none}
+    .peak-toggle:hover{background:var(--bg)}
+    .peak-chev{font-size:10px;color:var(--light)}
+
     .pkg-list{padding:4px 0}
+    .pkg-add{padding:7px 12px;font-size:12px;color:var(--accent);cursor:pointer;border:none;border-top:1px dashed #e5e7eb;background:transparent;width:100%;text-align:left}
+    .pkg-add:hover{background:var(--accent-bg)}
+    .pkg-more{padding:6px 12px;font-size:12px;color:var(--muted);cursor:pointer;border:none;border-top:1px solid var(--border);background:transparent;width:100%;text-align:left;display:flex;align-items:center;gap:5px}
+    .pkg-more:hover{background:var(--bg)}
+    .pkg-more-badge{font-size:10px;background:var(--accent-bg);color:var(--accent);border-radius:10px;padding:1px 7px;font-weight:600}
     .pkg-row{padding:8px 12px;border-bottom:1px solid #f3f4f6}
     .pkg-row:last-child{border-bottom:none}
     .pkg-row.off{opacity:.35}
@@ -64,6 +74,7 @@
     .flat-lbl{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--muted);cursor:pointer;white-space:nowrap}
     .pkg-rates{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
     .rf{display:flex;flex-direction:column;gap:2px}
+    .rf .ri{margin-top:auto}
     .rl{font-size:10px;color:var(--light);text-transform:uppercase;letter-spacing:.03em}
     .ri{padding:4px 6px;border:1px solid var(--border);border-radius:5px;font-size:12px;color:var(--text);width:100%}
     .ri:focus{outline:none;border-color:var(--accent)}
@@ -94,6 +105,7 @@
     .usum{font-size:12px;color:var(--muted);margin-top:12px}
     .usum strong{color:var(--text)}
 
+    #resultsCard{position:sticky;top:16px;z-index:5}
     .sum-bar{display:flex;gap:16px;flex-wrap:wrap;padding:11px 16px;background:var(--bg);border-radius:8px;margin-bottom:16px;font-size:13px;color:var(--muted)}
     .sv{font-weight:600;color:var(--text)}
     .sv.g{color:var(--green)}
@@ -136,6 +148,28 @@
       .slots-grid{grid-template-columns:repeat(2,1fr)}
       .h-grid{grid-template-columns:repeat(4,1fr)}
       .mode-bar{flex-wrap:wrap;width:100%}
+      .pkg-rates{grid-template-columns:1fr 1fr}
+      table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+    }
+    @media(max-width:520px){
+      .wrap{padding:14px 10px}
+      h1{font-size:17px}
+      .card{padding:14px 12px;border-radius:10px}
+      #resultsCard{position:static}
+      .sect-title{flex-wrap:wrap;gap:6px}
+      .pill{font-size:10px}
+      .sum-bar{flex-direction:column;gap:4px;align-items:flex-start}
+      th,td{padding:6px 5px;font-size:12px;white-space:nowrap}
+      .co-head{gap:3px}
+      .load-sel{max-width:80px;font-size:10px}
+      .hbtn.ico{font-size:12px;padding:3px 5px}
+      .urow{flex-direction:column}
+      .field{min-width:unset;width:100%}
+      .h-grid{grid-template-columns:repeat(3,1fr)}
+      .slots-grid{grid-template-columns:repeat(2,1fr)}
+      .mode-bar{font-size:12px}
+      .mb{padding:6px 12px}
+      .rg{gap:5px}
     }
   </style>
 </head>
@@ -143,6 +177,21 @@
 <div class="wrap">
   <h1>⚡ NZ Electricity Plan Comparator</h1>
   <p class="subtitle">Enter plan rates and estimated usage to compare 30-day monthly costs (NZD)</p>
+
+  <div class="card" id="resultsCard">
+    <div class="sect-title">Cost Comparison <span class="pill pill-g">Sorted by monthly cost · 30 days</span></div>
+    <div class="sum-bar" id="sumBar"><span style="color:var(--light)">Enter plan rates and usage to see comparisons…</span></div>
+    <div id="peakWarn"></div>
+    <table>
+      <thead>
+        <tr>
+          <th width="38">#</th><th>Provider</th><th>Plan</th>
+          <th>Energy Cost</th><th>Daily Charge ×30</th><th>Monthly Total</th>
+        </tr>
+      </thead>
+      <tbody id="tBody"></tbody>
+    </table>
+  </div>
 
   <div class="card">
     <div class="sect-title">Plan Configuration <span class="pill">3 providers · up to 4 plans each</span></div>
@@ -157,21 +206,6 @@
       <button class="mb" onclick="setMode('hourly')">Hourly Input</button>
     </div>
     <div id="usagePanel"></div>
-  </div>
-
-  <div class="card">
-    <div class="sect-title">Cost Comparison <span class="pill pill-g">Sorted by monthly cost · 30 days</span></div>
-    <div class="sum-bar" id="sumBar"><span style="color:var(--light)">Enter plan rates and usage to see comparisons…</span></div>
-    <div id="peakWarn"></div>
-    <table>
-      <thead>
-        <tr>
-          <th width="38">#</th><th>Provider</th><th>Plan</th>
-          <th>Energy Cost</th><th>Daily Charge ×30</th><th>Monthly Total</th>
-        </tr>
-      </thead>
-      <tbody id="tBody"></tbody>
-    </table>
   </div>
 </div>
 
@@ -357,6 +391,32 @@ const s = {
 
 let _aiCi = 0;
 
+const peakOpen = [false, false, false];
+function togglePeak(ci) { peakOpen[ci] = !peakOpen[ci]; renderCos(); }
+
+const pkgOpen = [false, false, false];
+function togglePkgs(ci) { pkgOpen[ci] = !pkgOpen[ci]; renderCos(); }
+
+function peakSummary(co) {
+  const fmtT = h => `${Math.floor(h)}:${h%1?'30':'00'}`;
+  switch(co.peakDays) {
+    case 'all':     return `Every day · ${fmtT(co.peakStart)}–${fmtT(co.peakEnd)}`;
+    case 'dual':    return `Dual peak · ${fmtT(co.peakStart)}–${fmtT(co.peakEnd)} / ${fmtT(co.peak2Start)}–${fmtT(co.peak2End)}`;
+    case 'weekday': return `Weekdays only · ${fmtT(co.peakStart)}–${fmtT(co.peakEnd)}`;
+    case 'weekend': return `Weekends only · ${fmtT(co.peakStart)}–${fmtT(co.peakEnd)}`;
+    case 'custom':  return `Custom · Weekday ${fmtT(co.wdPeakStart)}–${fmtT(co.wdPeakEnd)} / Weekend ${fmtT(co.wePeakStart)}–${fmtT(co.wePeakEnd)}`;
+    default:        return 'Peak hours';
+  }
+}
+
+function addPkgSlot(ci) {
+  const idx = s.cos[ci].pkgs.findIndex(p => !p.enabled && (p.name||'').trim() === '');
+  if (idx === -1) return;
+  s.cos[ci].pkgs[idx].enabled = true;
+  if (idx >= 2) pkgOpen[ci] = true;
+  renderCos(); renderResults();
+}
+
 // ═══════════════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════════════
@@ -465,6 +525,22 @@ function renderCos() {
     const showCustom = pd === 'custom';
     const showDual   = pd === 'dual';
     const otherLabel = pd==='weekday' ? 'Weekends/holidays' : (pd==='weekend' ? 'Weekdays' : '');
+    const isOpen     = peakOpen[ci];
+    const isPkgOpen  = pkgOpen[ci];
+
+    // Top 2 plans always visible; plans 3-4 collapsible
+    const topPkgRows = co.pkgs.slice(0,2).map((p,pi) => {
+      const blank = !p.enabled && (p.name||'').trim() === '';
+      return blank ? '' : renderPkgRow(ci,pi,p);
+    }).join('');
+    const extraPkgs = co.pkgs.slice(2);
+    const extraActive = extraPkgs.filter(p => p.enabled && ((p.name||'').trim() || p.daily || p.peak)).length;
+    const extraPkgRows = isPkgOpen ? extraPkgs.map((p,pi) => {
+      const blank = !p.enabled && (p.name||'').trim() === '';
+      return blank ? '' : renderPkgRow(ci,pi+2,p);
+    }).join('') : '';
+    const emptyInExtra = extraPkgs.filter(p => !p.enabled && (p.name||'').trim() === '').length;
+    const emptyInTop   = co.pkgs.slice(0,2).filter(p => !p.enabled && (p.name||'').trim() === '').length;
 
     return `
     <div class="co-box">
@@ -472,9 +548,9 @@ function renderCos() {
         <span class="co-dot" style="background:${col}"></span>
         <input class="co-name" style="color:${col}" placeholder="Provider ${ci+1}" value="${esc(co.name)}"
           oninput="s.cos[${ci}].name=this.value;renderResults()">
-        <button class="hbtn ai" onclick="openAiModal(${ci})">✨ AI</button>
-        <button class="hbtn" onclick="saveCompany(${ci})">💾 Save</button>
-        <button class="hbtn" onclick="clearCompany(${ci})" title="Clear all inputs for this provider">🗑 Clear</button>
+        <button class="hbtn ai ico" onclick="openAiModal(${ci})" title="AI fill">✨</button>
+        <button class="hbtn ico" onclick="saveCompany(${ci})" title="Save">💾</button>
+        <button class="hbtn ico" onclick="clearCompany(${ci})" title="Clear all">🗑</button>
         <select class="load-sel" onchange="loadCompany(${ci},this.value)">
           <option value="">📂 Load…</option>
           <optgroup label="Built-in presets">
@@ -484,7 +560,12 @@ function renderCos() {
         </select>
       </div>
 
-      <div class="co-peak">
+      <div class="peak-toggle" onclick="togglePeak(${ci})">
+        <span>⚡ Peak: ${peakSummary(co)}</span>
+        <span class="peak-chev">${isOpen ? '▲' : '▼'}</span>
+      </div>
+
+      ${isOpen ? `<div class="co-peak">
         <div class="prow">
           <span>Peak applies:</span>
           <div class="rg">
@@ -585,10 +666,19 @@ function renderCos() {
           </div>
         </div>
         ` : ''}
-      </div>
+      </div>` : ''}
 
       <div class="pkg-list">
-        ${co.pkgs.map((p,pi) => renderPkgRow(ci,pi,p)).join('')}
+        ${topPkgRows}
+        ${emptyInTop > 0 ? `<button class="pkg-add" onclick="addPkgSlot(${ci})">＋ Add plan (${emptyInTop} slot${emptyInTop>1?'s':''} available)</button>` : ''}
+        <button class="pkg-more" onclick="togglePkgs(${ci})">
+          ${isPkgOpen ? '▲ Collapse extra plans' : '▼ More plans'}
+          ${!isPkgOpen && extraActive > 0 ? `<span class="pkg-more-badge">${extraActive}</span>` : ''}
+        </button>
+        ${isPkgOpen ? `
+          ${extraPkgRows}
+          ${emptyInExtra > 0 ? `<button class="pkg-add" onclick="addPkgSlot(${ci})">＋ Add plan (${emptyInExtra} slot${emptyInExtra>1?'s':''} available)</button>` : ''}
+        ` : ''}
       </div>
     </div>`;
   }).join('');
@@ -732,7 +822,7 @@ function renderResults() {
 
   if (!rows.length) {
     document.getElementById('sumBar').innerHTML = `<span style="color:var(--light)">Enter plan rates and usage data to see comparisons…</span>`;
-    document.getElementById('tBody').innerHTML  = `<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--light);font-size:13px">No data yet — enter plan details above to get started</td></tr>`;
+    document.getElementById('tBody').innerHTML  = `<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--light);font-size:13px">No data yet — enter plan details below to get started</td></tr>`;
     return;
   }
 
@@ -832,6 +922,7 @@ function loadCompany(ci, profileId) {
       if (!confirm(`"${profile.name}" has different peak hours than Provider ${ci+1}'s current settings. Overwrite peak settings?`)) { renderCos(); return; }
     }
     applyPeakSettings(cur, inData);
+    peakOpen[ci] = true;
     if (!curName && inName) cur.name = inName;
     renderCos(); renderResults();
     toast(`✓ Peak settings updated for "${inName || profile.name}"`);
